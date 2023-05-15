@@ -42,19 +42,6 @@ class PostgreeForm:
                     WHERE user_id = {self.user_id};"""
         return query
     
-    def get_json_order(self, position:str, position_id:str, price:int=0,
-                    comment:str ="", size:str="M"): 
-        order = {
-                "position": f"{position}",
-                "position_id": f"{position_id}",
-                "price" : f"{price}",
-                "size":f"{size}",
-                "comment": f"{comment}",
-                "properties": json.dumps({})
-                }
-        return json.dumps(order)
-    
-    
     def get_query_count_orders(self):
         query = f"""SELECT MAX(CAST(key AS INTEGER))
                     FROM jsonb_object_keys((SELECT order_info 
@@ -75,37 +62,66 @@ class PostgreeForm:
                     VALUES({self.user_id})"""
         return query
     
-    # def get_query_insert_firtht_order():
-    #     id = self.__shielding(id)
-    #     query = f"""INSERT INTO "ProductOrder"
-    #                 , 
-    #                 '{json_form}')
-    #                 WHERE user_id = {self.user_id};"""
-    #     return query
-    
     def get_query_select_UserInfo(self):
         query = f"""SELECT "order_info" 
                 FROM "ProductOrder" 
                 WHERE user_id = {self.user_id};"""
         return query
-
-    def get_json_properties(self, propertie_id:str, propertie_price:int=0):
-        proper ={
-            'position_id' : f'{propertie_id}',
-            'price': f'{propertie_price}'
-                } 
-        return json.dumps(proper)
     
-    def get_query_insert_properie(self, propertie:str, position_id:int, 
-                                json_form:json):
-        propertie = self.__shielding(propertie)
+    def get_query_insert_additives(self, additives:str, position_id:int, 
+                                json_form_additives:json):
+        form = self.__shielding(f'{position_id},additives,{additives}')
         query = f"""UPDATE "ProductOrder"
-            SET order_info = jsonb_insert(order_info -> '{position_id}' -> properties,
-            {propertie}, '{json_form}')
-            WHERE user_id = {self.user_id};"""
+                    SET order_info = jsonb_insert(
+                    order_info, 
+                    {form}, 
+                    '{json_form_additives}'
+                    ); """
+        return query
+    
+    def get_query_delete_additives(self, position_id, additives):
+        json_form = self.__shielding(f'{position_id}, additives ,{additives}')
+        query = f"""UPDATE "ProductOrder"
+        SET order_info = order_info #- {json_form}
+        WHERE user_id = {self.user_id};"""
         return query
         
-
+    def get_query_get_additives(self, position_id):
+        query = f"""
+                SELECT jsonb_extract_path_text(jsonb_build_object('data', 
+                                    order_info), 'data', '{position_id}', 'additives') 
+                FROM "ProductOrder" WHERE user_id = {self.user_id};
+                """
+        return query
+    
+    def get_query_delete_order(self, order_id):
+        query = f"""
+                UPDATE "ProductOrder" 
+                SET order_info = order_info - '{order_id}'
+                WHERE user_id = {self.user_id};
+                """ 
+        return query
+    
+    def get_query_clear_bascket(self):
+        query = f"""
+                UPDATE "ProductOrder"
+                SET order_info = '{json.dumps({})}'
+                WHERE user_id ={self.user_id};
+        """
+        return query
+    
+    def get_query_pay_transaction(self):
+        query = f""" 
+                BEGIN;
+                INSERT INTO "ProductHistory" (user_id, order_info)
+                SELECT user_id, order_info
+                FROM "ProductOrder"
+                WHERE user_id = {self.user_id};
+                DELETE FROM "ProductOrder" WHERE user_id = 3;
+                COMMIT;
+                """
+        return query
+        
 if __name__ == "__main__":
     ...
     
