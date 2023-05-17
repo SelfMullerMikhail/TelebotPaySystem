@@ -9,13 +9,14 @@ APPROVE_TEXT = '❌ Approve ...'
 DONE_TEXT = "✅ Done ..."
 
 BOT_COMMANDS = [
-("/start", "🫡 Старт"),
-("/order", "📝 Заказ"),
-("/previous", "🧷 Предыдущий заказ ..."),
-("/basket", "🧺 Корзина ..."),
-("/history", "📖 История заказов ...")]
+    ("/start", "🫡 Старт"),
+    ("/order", "📝 Заказ"),
+    ("/previous", "🧷 Предыдущий заказ ..."),
+    ("/basket", "🧺 Корзина ..."),
+    ("/history", "📖 История заказов ...")]
 
-def get_order_info(discount,discount_money, summ, city, address):
+
+def get_order_info(discount, discount_money, summ, city, address):
     info = f"""
     {city}
     {address}
